@@ -9,4 +9,15 @@ const APILinks = axios.create({
 
 console.log(import.meta.env.VITE_APP_API_BASE_URL)
 
-export { APILinks }
+function ConvertKeysToCamelCase(obj: Record<string, any>): Record<string, any> {
+  const newObj: Record<string, any> = {};
+  Object.keys(obj).forEach((key) => {
+    const newKey = key.replace(/([-_][a-z])/gi, ($1) => {
+      return $1.toUpperCase().replace(/[-_]/g, '');
+    });
+    newObj[newKey] = obj[key];
+  });
+  return newObj;
+}
+
+export { APILinks, ConvertKeysToCamelCase }

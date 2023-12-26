@@ -9,4 +9,5 @@ export interface LinksData {
   ip: string[]
   ipString: string
   qty: number
+  linkTextShort: string
 }

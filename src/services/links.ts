@@ -1,4 +1,4 @@
-import { APILinks } from '../utils/api.ts'
+import { APILinks, ConvertKeysToCamelCase } from '../utils/api.ts'
 import { LinksData } from '../types/links.ts'
 import axios from 'axios'
 
@@ -10,7 +10,7 @@ const LinksService = {
         page: page,
         limit: limit
       })
-      return response.data as LinksData[]
+      return response.data.map((item) => ConvertKeysToCamelCase(item)) as LinksData[]
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         if (error.response && error.response.status === 429) {

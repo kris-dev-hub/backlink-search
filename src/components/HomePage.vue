@@ -5,12 +5,12 @@ import { LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
 
 const headers: Header[] = [
-  { text: 'Link', value: 'link_url' },
-  { text: 'Source', value: 'page_url' },
-  { text: 'Anchor', value: 'link_text' },
-  { text: 'No follow', value: 'no_follow' },
-  { text: 'First Seen', value: 'date_from', width: 95 },
-  { text: 'Last Seen', value: 'date_to', width: 95 },
+  { text: 'Link', value: 'linkUrl' },
+  { text: 'Source', value: 'pageUrl' },
+  { text: 'Anchor', value: 'linkText' },
+  { text: 'No follow', value: 'noFollow' },
+  { text: 'First Seen', value: 'dateFrom', width: 95 },
+  { text: 'Last Seen', value: 'dateYo', width: 95 },
   { text: 'IP', value: 'ipString', width: 110 },
   { text: 'Qty', value: 'qty', width: 50 }
 ]
@@ -47,6 +47,9 @@ const loadFromServer = async () => {
     } else {
       for (let i = 0; i < data.length; i++) {
         data[i].ipString = data[i].ip.join(', ')
+        if (data[i].linkText != undefined) {
+          data[i].linkTextShort = truncatedText(data[i].linkText)
+        }
       }
       links.value = data
       errorMessage.value = ''
@@ -79,6 +82,13 @@ const updateCurrentPage = (newPage: number) => {
 const updateRowsPerPage = (newRowsPerPage: number) => {
   serverOptions.value.rowsPerPage = newRowsPerPage
 }
+const truncatedText = (text: string) => {
+  return text.length <= 30
+    ? text
+    : text.substring(0, 27) + '...';
+}
+
+
 </script>
 
 <template>
@@ -139,6 +149,11 @@ const updateRowsPerPage = (newRowsPerPage: number) => {
         @update:rows-per-page="updateRowsPerPage"
         alternating
       >
+        <template #item-linkText="{ linkText, linkTextShort }">
+          <div class="row-link-text" :title="linkText">
+            {{ linkTextShort }}
+          </div>
+        </template>
         <template #pagination="{ isLastPage }">
           <button
             :disabled="serverOptions.page <= 1"
@@ -193,5 +208,17 @@ const updateRowsPerPage = (newRowsPerPage: number) => {
 
 .search-button:hover {
   background-color: #0056b3;
+}
+
+.row-link-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* Adjust as needed */
+}
+
+.row-link-text:hover {
+  overflow: visible;
+  white-space: normal;
 }
 </style>
