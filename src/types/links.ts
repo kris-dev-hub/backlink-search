@@ -13,3 +13,9 @@ export interface LinksData {
   pageUrlShort: string
   linkTextShort: string
 }
+
+export interface FilterData {
+  name: string
+  val: string
+  kind: string
+}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { Header /*, Item */, ServerOptions, SortType } from 'vue3-easy-data-table'
-import { LinksData } from '../types/links.ts'
+import { FilterData, LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
 
 const headers: Header[] = [
@@ -27,6 +27,12 @@ const serverOptions = ref<ServerOptions>({
   sortType: 'asc'
 })
 
+const searchField = ref('')
+const searchValue = ref('')
+let debounceTimeout = 0;
+
+const filtersData = ref<FilterData[]>([])
+
 const errorMessage = ref('')
 
 const submitForm = async () => {
@@ -41,7 +47,8 @@ const loadFromServer = async () => {
     serverOptions.value.page,
     serverOptions.value.rowsPerPage,
     <string>serverOptions.value.sortBy,
-    <SortType>serverOptions.value.sortType
+    <SortType>serverOptions.value.sortType,
+    filtersData.value
   ).then((data) => {
     if ('error' in data) {
       errorMessage.value = data.error
@@ -79,6 +86,36 @@ watch(
   serverOptions,
   () => {
     loadFromServer()
+  },
+  { deep: true }
+)
+
+watch(
+  searchField,
+  () => {
+
+    if (searchValue.value != '') {
+      searchValue.value = ''
+    }
+  },
+  { deep: true }
+)
+
+watch(
+  searchValue,
+  () => {
+
+// Clear the previous timeout if it exists
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    // Set a new timeout
+    debounceTimeout = setTimeout(() => {
+      serverOptions.value.page = 1;
+      filtersData.value = [{ name: searchField.value, val: searchValue.value, kind: 'exact'}];
+      loadFromServer();
+    }, 2000); // 2 seconds delay
   },
   { deep: true }
 )
@@ -142,6 +179,28 @@ const truncatedText = (text: string, length: number) => {
         v-if="errorMessage != ''"
       >
         {{ errorMessage }}
+      </div>
+
+      <div class="search-filter" v-if="domain!=''">
+
+        <span>search field: </span>
+        <select class="filter-select" v-model="searchField">
+          <option>Link</option>
+          <option>Source</option>
+          <option>Anchor</option>
+          <option>NoFollow</option>
+        </select>
+
+        <input  v-if="searchField == 'Link' || searchField == 'Source' || searchField == 'Anchor'"
+          v-model="searchValue"
+          type="text"
+          placeholder="Enter filter value"
+          class="domain-input"
+        />
+        <select class="filter-select" v-if="searchField == 'NoFollow'" v-model="searchValue">
+          <option value="1">true</option>
+          <option value="0">false</option>
+        </select>
       </div>
 
       <EasyDataTable
@@ -215,6 +274,18 @@ const truncatedText = (text: string, length: number) => {
   font-size: 16px;
 }
 
+.filter-select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex-grow: 1;
+  max-width: 100px; /* Maximum width for input field */
+  font-size: 16px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+
 .search-button {
   padding: 10px 15px;
   background-color: #007bff;
@@ -243,4 +314,9 @@ const truncatedText = (text: string, length: number) => {
 .customize-table {
   --easy-table-body-row-height: 28px;
 }
+
+.search-filter {
+  margin-bottom: 20px;
+}
+
 </style>
