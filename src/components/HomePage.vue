@@ -96,6 +96,11 @@ watch(
 
     if (searchValue.value != '') {
       searchValue.value = ''
+    } else {
+      if (searchField.value == 'Disable') {
+        filtersData.value = []
+        loadFromServer();
+      }
     }
   },
   { deep: true }
@@ -113,7 +118,13 @@ watch(
     // Set a new timeout
     debounceTimeout = setTimeout(() => {
       serverOptions.value.page = 1;
-      filtersData.value = [{ name: searchField.value, val: searchValue.value, kind: 'exact'}];
+
+      if (searchValue.value.startsWith('"') && searchValue.value.endsWith('"')) {
+        filtersData.value = [{ name: searchField.value, val: searchValue.value.substring(1,searchValue.value.length-1), kind: 'exact' }];
+      } else {
+        filtersData.value = [{ name: searchField.value, val: searchValue.value, kind: 'any' }];
+      }
+
       loadFromServer();
     }, 2000); // 2 seconds delay
   },
@@ -183,21 +194,23 @@ const truncatedText = (text: string, length: number) => {
 
       <div class="search-filter" v-if="domain!=''">
 
-        <span>search field: </span>
+        <span>Filter field: </span>
         <select class="filter-select" v-model="searchField">
-          <option>Link</option>
-          <option>Source</option>
+          <option>Disable</option>
+          <option>Link Path</option>
+          <option>Source Host</option>
+          <option>Source Path</option>
           <option>Anchor</option>
-          <option>NoFollow</option>
+          <option>No Follow</option>
         </select>
 
-        <input  v-if="searchField == 'Link' || searchField == 'Source' || searchField == 'Anchor'"
+        <input  v-if="searchField == 'Link Path' || searchField == 'Source Host' || searchField == 'Source Path' || searchField == 'Anchor'"
           v-model="searchValue"
           type="text"
           placeholder="Enter filter value"
           class="domain-input"
         />
-        <select class="filter-select" v-if="searchField == 'NoFollow'" v-model="searchValue">
+        <select class="filter-select" v-if="searchField == 'No Follow'" v-model="searchValue">
           <option value="1">true</option>
           <option value="0">false</option>
         </select>
@@ -279,7 +292,7 @@ const truncatedText = (text: string, length: number) => {
   border: 1px solid #ccc;
   border-radius: 4px;
   flex-grow: 1;
-  max-width: 100px; /* Maximum width for input field */
+  max-width: 150px; /* Maximum width for input field */
   font-size: 16px;
   margin-left: 10px;
   margin-right: 10px;
