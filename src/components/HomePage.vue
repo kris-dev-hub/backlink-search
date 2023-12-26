@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Header /*, Item */, ServerOptions } from 'vue3-easy-data-table'
+import type { Header /*, Item */, ServerOptions, SortType } from 'vue3-easy-data-table'
 import { LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
 
 const headers: Header[] = [
-  { text: 'Link', value: 'linkUrl' },
-  { text: 'Source', value: 'pageUrl' },
-  { text: 'Anchor', value: 'linkText' },
+  { text: 'Link', value: 'linkUrl', sortable: true },
+  { text: 'Source', value: 'pageUrl', sortable: true },
+  { text: 'Anchor', value: 'linkText', sortable: true },
   { text: 'No follow', value: 'noFollow' },
-  { text: 'First Seen', value: 'dateFrom', width: 95 },
-  { text: 'Last Seen', value: 'dateYo', width: 95 },
+  { text: 'First Seen', value: 'dateFrom', width: 95, sortable: true },
+  { text: 'Last Seen', value: 'dateTo', width: 95, sortable: true },
   { text: 'IP', value: 'ipString', width: 110 },
   { text: 'Qty', value: 'qty', width: 50 }
 ]
@@ -22,9 +22,9 @@ const loading = ref(false)
 const serverItemsLength = ref(0)
 const serverOptions = ref<ServerOptions>({
   page: 1,
-  rowsPerPage: 25
-  //  sortBy: 'age',
-  //  sortType: 'desc',
+  rowsPerPage: 25,
+  sortBy: 'default',
+  sortType: 'asc'
 })
 
 const errorMessage = ref('')
@@ -39,7 +39,9 @@ const loadFromServer = async () => {
   await LinksService.getLinksList(
     domain.value,
     serverOptions.value.page,
-    serverOptions.value.rowsPerPage
+    serverOptions.value.rowsPerPage,
+    <string>serverOptions.value.sortBy,
+    <SortType>serverOptions.value.sortType
   ).then((data) => {
     if ('error' in data) {
       errorMessage.value = data.error
@@ -48,7 +50,13 @@ const loadFromServer = async () => {
       for (let i = 0; i < data.length; i++) {
         data[i].ipString = data[i].ip.join(', ')
         if (data[i].linkText != undefined) {
-          data[i].linkTextShort = truncatedText(data[i].linkText)
+          data[i].linkTextShort = truncatedText(data[i].linkText,30)
+        }
+        if (data[i].linkUrl != undefined) {
+          data[i].linkUrlShort = truncatedText(data[i].linkUrl,90)
+        }
+        if (data[i].pageUrl != undefined) {
+          data[i].pageUrlShort = truncatedText(data[i].pageUrl,90)
         }
       }
       links.value = data
@@ -82,10 +90,10 @@ const updateCurrentPage = (newPage: number) => {
 const updateRowsPerPage = (newRowsPerPage: number) => {
   serverOptions.value.rowsPerPage = newRowsPerPage
 }
-const truncatedText = (text: string) => {
-  return text.length <= 30
+const truncatedText = (text: string, length: number) => {
+  return text.length <= length
     ? text
-    : text.substring(0, 27) + '...';
+    : text.substring(0, length-3) + '...';
 }
 
 
@@ -149,6 +157,16 @@ const truncatedText = (text: string) => {
         @update:rows-per-page="updateRowsPerPage"
         alternating
       >
+        <template #item-linkUrl="{ linkUrl, linkUrlShort }">
+          <div class="row-link-url" :title="linkUrl">
+            {{ linkUrlShort }}
+          </div>
+        </template>
+        <template #item-pageUrl="{ pageUrl, pageUrlShort }">
+          <div class="row-page-url" :title="pageUrl">
+            {{ pageUrlShort }}
+          </div>
+        </template>
         <template #item-linkText="{ linkText, linkTextShort }">
           <div class="row-link-text" :title="linkText">
             {{ linkTextShort }}
@@ -220,5 +238,9 @@ const truncatedText = (text: string) => {
 .row-link-text:hover {
   overflow: visible;
   white-space: normal;
+}
+
+.customize-table {
+  --easy-table-body-row-height: 28px;
 }
 </style>

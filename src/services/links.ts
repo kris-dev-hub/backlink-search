@@ -1,14 +1,17 @@
 import { APILinks, ConvertKeysToCamelCase } from '../utils/api.ts'
 import { LinksData } from '../types/links.ts'
 import axios from 'axios'
+import { SortType } from 'vue3-easy-data-table'
 
 const LinksService = {
-  async getLinksList(domain: string, page: number, limit: number) {
+  async getLinksList(domain: string, page: number, limit: number, sort: string, order: SortType) {
     try {
       const response = await APILinks.post<LinksData[]>('/api/links', {
         domain: domain,
         page: page,
-        limit: limit
+        limit: limit,
+        sort: sort,
+        order: order
       })
       return response.data.map((item) => ConvertKeysToCamelCase(item)) as LinksData[]
     } catch (error: unknown) {
