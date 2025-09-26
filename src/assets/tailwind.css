@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom components for consistent styling */
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+
+  .filter-select {
+    @apply px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white;
+  }
+}
+
+/* Dense data table styling */
+@layer utilities {
+  .text-dense {
+    @apply text-xs leading-tight;
+  }
+
+  .table-dense {
+    @apply text-xs;
+  }
+
+  .table-dense th,
+  .table-dense td {
+    @apply py-1 px-2;
+  }
+}

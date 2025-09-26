@@ -1,335 +1,168 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Header /*, Item */, ServerOptions, SortType } from 'vue3-easy-data-table'
 import { FilterData, LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
-
-const headers: Header[] = [
-  { text: 'Link', value: 'linkUrl', sortable: true },
-  { text: 'Source', value: 'pageUrl', sortable: true },
-  { text: 'Anchor', value: 'linkText', sortable: true },
-  { text: 'No follow', value: 'noFollow' },
-  { text: 'First Seen', value: 'dateFrom', width: 95, sortable: true },
-  { text: 'Last Seen', value: 'dateTo', width: 95, sortable: true },
-  { text: 'IP', value: 'ipString', width: 110 },
-  { text: 'Qty', value: 'qty', width: 50 }
-]
+import SearchInput from './SearchInput.vue'
+import FilterPanel from './FilterPanel.vue'
+import ResultsTable from './ResultsTable.vue'
 
 const links = ref<LinksData[]>([])
 const domain = ref('')
-
 const loading = ref(false)
-const serverItemsLength = ref(0)
-const serverOptions = ref<ServerOptions>({
-  page: 1,
-  rowsPerPage: 25,
-  sortBy: 'default',
-  sortType: 'asc'
-})
+const errorMessage = ref('')
 
-const searchField = ref('')
-const searchValue = ref('')
-let debounceTimeout = 0;
+const currentPage = ref(1)
+const rowsPerPage = ref(25)
+const totalRecords = ref(0)
 
 const filtersData = ref<FilterData[]>([])
 
-const errorMessage = ref('')
+let debounceTimeout = 0
 
-const submitForm = async () => {
-  serverOptions.value.page = 1
-  loadFromServer()
+const onSearch = async (searchDomain: string) => {
+  domain.value = searchDomain
+  currentPage.value = 1
+  await loadFromServer()
 }
 
 const loadFromServer = async () => {
+  if (!domain.value) return
+
   loading.value = true
-  await LinksService.getLinksList(
-    domain.value,
-    serverOptions.value.page,
-    serverOptions.value.rowsPerPage,
-    <string>serverOptions.value.sortBy,
-    <SortType>serverOptions.value.sortType,
-    filtersData.value
-  ).then((data) => {
+  errorMessage.value = ''
+
+  try {
+    const data = await LinksService.getLinksList(
+      domain.value,
+      currentPage.value,
+      rowsPerPage.value,
+      'default',
+      'asc',
+      filtersData.value
+    )
+
     if ('error' in data) {
       errorMessage.value = data.error
+      links.value = []
       return
-    } else {
-      for (let i = 0; i < data.length; i++) {
-        data[i].ipString = data[i].ip.join(', ')
-        if (data[i].linkText != undefined) {
-          data[i].linkTextShort = truncatedText(data[i].linkText,30)
-        }
-        if (data[i].linkUrl != undefined) {
-          data[i].linkUrlShort = truncatedText(data[i].linkUrl,90)
-        }
-        if (data[i].pageUrl != undefined) {
-          data[i].pageUrlShort = truncatedText(data[i].pageUrl,90)
-        }
-      }
-      links.value = data
-      errorMessage.value = ''
     }
-  })
-  if (links.value.length < serverOptions.value.rowsPerPage) {
-    serverItemsLength.value =
-      serverOptions.value.rowsPerPage * (serverOptions.value.page - 1) +
-      links.value.length
-  } else {
-    serverItemsLength.value =
-      serverOptions.value.rowsPerPage * serverOptions.value.page + 1
+
+    // Process the data
+    for (let i = 0; i < data.length; i++) {
+      data[i].ipString = data[i].ip.join(', ')
+      if (data[i].linkText != undefined) {
+        data[i].linkTextShort = truncatedText(data[i].linkText, 30)
+      }
+      if (data[i].linkUrl != undefined) {
+        data[i].linkUrlShort = truncatedText(data[i].linkUrl, 90)
+      }
+      if (data[i].pageUrl != undefined) {
+        data[i].pageUrlShort = truncatedText(data[i].pageUrl, 90)
+      }
+    }
+
+    links.value = data
+
+    // Calculate total records for pagination
+    if (data.length < rowsPerPage.value) {
+      totalRecords.value = (currentPage.value - 1) * rowsPerPage.value + data.length
+    } else {
+      totalRecords.value = currentPage.value * rowsPerPage.value + 1
+    }
+
+  } catch (error) {
+    errorMessage.value = 'Failed to load data. Please try again.'
+    links.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+const onFiltersUpdate = (newFilters: FilterData[]) => {
+  filtersData.value = newFilters
+  currentPage.value = 1
+
+  // Clear the previous timeout if it exists
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout)
   }
 
-  loading.value = false
-}
-
-watch(
-  serverOptions,
-  () => {
+  // Set a new timeout for debounced search
+  debounceTimeout = setTimeout(() => {
     loadFromServer()
-  },
-  { deep: true }
-)
-
-watch(
-  searchField,
-  () => {
-
-    if (searchValue.value != '') {
-      searchValue.value = ''
-    } else {
-      if (searchField.value == 'Disable') {
-        filtersData.value = []
-        loadFromServer();
-      }
-    }
-  },
-  { deep: true }
-)
-
-watch(
-  searchValue,
-  () => {
-
-// Clear the previous timeout if it exists
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
-
-    // Set a new timeout
-    debounceTimeout = setTimeout(() => {
-      serverOptions.value.page = 1;
-
-      if (searchValue.value.startsWith('"') && searchValue.value.endsWith('"')) {
-        filtersData.value = [{ name: searchField.value, val: searchValue.value.substring(1,searchValue.value.length-1), kind: 'exact' }];
-      } else {
-        filtersData.value = [{ name: searchField.value, val: searchValue.value, kind: 'any' }];
-      }
-
-      loadFromServer();
-    }, 2000); // 2 seconds delay
-  },
-  { deep: true }
-)
-
-const updateCurrentPage = (newPage: number) => {
-  serverOptions.value.page = newPage
+  }, 500) // 500ms delay
 }
 
-const updateRowsPerPage = (newRowsPerPage: number) => {
-  serverOptions.value.rowsPerPage = newRowsPerPage
+const onPageUpdate = (newPage: number) => {
+  currentPage.value = newPage
+  loadFromServer()
 }
+
 const truncatedText = (text: string, length: number) => {
   return text.length <= length
     ? text
-    : text.substring(0, length-3) + '...';
+    : text.substring(0, length - 3) + '...'
 }
-
-
 </script>
 
 <template>
-  <div>
-    <header class="header">
-      <h1>Backlink search</h1>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h1 class="text-3xl font-bold text-gray-900">Backlink Search</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Discover backlinks pointing to any domain with advanced filtering capabilities
+        </p>
+      </div>
     </header>
-    <section class="description">
-      <p>
-        Introducing new backlink search tool designed for SEO enthusiasts and
-        website owners. This user-friendly tool offers the unique capability to
-        search for backlinks by specific domains. It's an ideal solution for
-        those looking to enhance their SEO strategies by understanding where
-        their or competitors' backlinks are coming from. The best part? It's
-        free, with some limitations in place. This accessibility ensures that
-        even beginners or those on a tight budget can start optimizing their
-        backlink strategy effectively. Dive into a new world of optimization and
-        give your website the visibility it deserves!
-      </p>
-    </section>
-    <section class="search">
-      <h2>Search for backlinks</h2>
-      <form
-        @submit.prevent="submitForm"
-        class="search-form"
-      >
-        <input
-          v-model="domain"
-          type="text"
-          placeholder="Enter domain name"
-          class="domain-input"
-        />
-        <button
-          type="submit"
-          class="search-button"
-        >
-          Search
-        </button>
-      </form>
 
-      <div
-        class="error-message"
-        v-if="errorMessage != ''"
-      >
-        {{ errorMessage }}
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Description Section -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <p class="text-sm text-gray-700 leading-relaxed">
+          Introducing new backlink search tool designed for SEO enthusiasts and
+          website owners. This user-friendly tool offers the unique capability to
+          search for backlinks by specific domains. It's an ideal solution for
+          those looking to enhance their SEO strategies by understanding where
+          their or competitors' backlinks are coming from. The best part? It's
+          free, with some limitations in place. This accessibility ensures that
+          even beginners or those on a tight budget can start optimizing their
+          backlink strategy effectively. Dive into a new world of optimization and
+          give your website the visibility it deserves!
+        </p>
       </div>
 
-      <div class="search-filter" v-if="domain!=''">
-
-        <span>Filter field: </span>
-        <select class="filter-select" v-model="searchField">
-          <option>Disable</option>
-          <option>Link Path</option>
-          <option>Source Host</option>
-          <option>Source Path</option>
-          <option>Anchor</option>
-          <option>No Follow</option>
-        </select>
-
-        <input  v-if="searchField == 'Link Path' || searchField == 'Source Host' || searchField == 'Source Path' || searchField == 'Anchor'"
-          v-model="searchValue"
-          type="text"
-          placeholder="Enter filter value"
-          class="domain-input"
+      <!-- Search Input -->
+      <div class="mb-6">
+        <SearchInput
+          :loading="loading"
+          @search="onSearch"
         />
-        <select class="filter-select" v-if="searchField == 'No Follow'" v-model="searchValue">
-          <option value="1">true</option>
-          <option value="0">false</option>
-        </select>
       </div>
 
-      <EasyDataTable
-        theme-color="#1d90ff"
-        table-class-name="customize-table"
-        header-text-direction="center"
+      <!-- Filter Panel -->
+      <div class="mb-6">
+        <FilterPanel
+          v-model="filtersData"
+          :domain="domain"
+          @update:modelValue="onFiltersUpdate"
+        />
+      </div>
+
+      <!-- Results Table -->
+      <ResultsTable
+        :links="links"
         :loading="loading"
-        :headers="headers"
-        :items="links"
-        v-model:server-options="serverOptions"
-        :server-items-length="serverItemsLength"
-        @update:current-page="updateCurrentPage"
-        @update:rows-per-page="updateRowsPerPage"
-        alternating
-      >
-        <template #item-linkUrl="{ linkUrl, linkUrlShort }">
-          <div class="row-link-url" :title="linkUrl">
-            {{ linkUrlShort }}
-          </div>
-        </template>
-        <template #item-pageUrl="{ pageUrl, pageUrlShort }">
-          <div class="row-page-url" :title="pageUrl">
-            {{ pageUrlShort }}
-          </div>
-        </template>
-        <template #item-linkText="{ linkText, linkTextShort }">
-          <div class="row-link-text" :title="linkText">
-            {{ linkTextShort }}
-          </div>
-        </template>
-        <template #pagination="{ isLastPage }">
-          <button
-            :disabled="serverOptions.page <= 1"
-            @click="serverOptions.page--"
-          >
-            prev page
-          </button>
-          <button
-            :disabled="isLastPage"
-            @click="serverOptions.page++"
-          >
-            next page
-          </button>
-        </template>
-      </EasyDataTable>
-    </section>
+        :error-message="errorMessage"
+        :domain="domain"
+        :current-page="currentPage"
+        :rows-per-page="rowsPerPage"
+        :total-records="totalRecords"
+        @update:current-page="onPageUpdate"
+      />
+    </main>
   </div>
 </template>
 
-<style scoped>
-.error-message {
-  color: red;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  min-height: 60px;
-}
-
-.search-form {
-  display: flex;
-  justify-content: center; /* Center the form horizontally */
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.domain-input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  flex-grow: 1;
-  max-width: 300px; /* Maximum width for input field */
-  font-size: 16px;
-}
-
-.filter-select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  flex-grow: 1;
-  max-width: 150px; /* Maximum width for input field */
-  font-size: 16px;
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-
-.search-button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.search-button:hover {
-  background-color: #0056b3;
-}
-
-.row-link-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px; /* Adjust as needed */
-}
-
-.row-link-text:hover {
-  overflow: visible;
-  white-space: normal;
-}
-
-.customize-table {
-  --easy-table-body-row-height: 28px;
-}
-
-.search-filter {
-  margin-bottom: 20px;
-}
-
-</style>
