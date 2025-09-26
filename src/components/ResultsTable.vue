@@ -14,86 +14,166 @@
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
 
-      <DataTable
-        :value="links"
-        :loading="loading"
-        class="table-dense text-xs"
-        :paginator="false"
-        :rowClass="() => 'text-xs'"
-      >
-        <Column field="linkUrlShort" header="Link" class="text-xs" :style="{ width: '25%' }">
-          <template #body="{ data }">
-            <div
-              :title="data.linkUrl"
-              class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer truncate"
-              @click="openUrl(data.linkUrl)"
-            >
-              {{ data.linkUrlShort || data.linkUrl }}
-            </div>
-          </template>
-        </Column>
+      <!-- Custom Table with Column Filters -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-50">
+            <!-- Header Row -->
+            <tr>
+              <th class="px-3 py-2 text-left font-semibold text-gray-700 border-b border-gray-200 w-1/4">
+                <button @click="onSort('linkUrl')" class="flex items-center gap-1 hover:text-gray-900">
+                  Link
+                  <i :class="getSortIcon('linkUrl')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-left font-semibold text-gray-700 border-b border-gray-200 w-1/4">
+                <button @click="onSort('pageUrl')" class="flex items-center gap-1 hover:text-gray-900">
+                  Source
+                  <i :class="getSortIcon('pageUrl')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-left font-semibold text-gray-700 border-b border-gray-200 w-1/5">
+                <button @click="onSort('linkText')" class="flex items-center gap-1 hover:text-gray-900">
+                  Anchor
+                  <i :class="getSortIcon('linkText')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-16">
+                <button @click="onSort('noFollow')" class="flex items-center gap-1 hover:text-gray-900">
+                  No Follow
+                  <i :class="getSortIcon('noFollow')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-20">
+                <button @click="onSort('dateFrom')" class="flex items-center gap-1 hover:text-gray-900">
+                  First Seen
+                  <i :class="getSortIcon('dateFrom')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-20">
+                <button @click="onSort('dateTo')" class="flex items-center gap-1 hover:text-gray-900">
+                  Last Seen
+                  <i :class="getSortIcon('dateTo')" class="pi text-xs"></i>
+                </button>
+              </th>
+              <th class="px-3 py-2 text-left font-semibold text-gray-700 border-b border-gray-200 w-24">
+                IP
+              </th>
+              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-12">
+                <button @click="onSort('qty')" class="flex items-center gap-1 hover:text-gray-900">
+                  Qty
+                  <i :class="getSortIcon('qty')" class="pi text-xs"></i>
+                </button>
+              </th>
+            </tr>
 
-        <Column field="pageUrlShort" header="Source" class="text-xs" :style="{ width: '25%' }">
-          <template #body="{ data }">
-            <div
-              :title="data.pageUrl"
-              class="text-xs text-gray-700 hover:text-gray-900 cursor-pointer truncate"
-              @click="openUrl(data.pageUrl)"
-            >
-              {{ data.pageUrlShort || data.pageUrl }}
-            </div>
-          </template>
-        </Column>
+            <!-- Filter Row -->
+            <tr class="bg-gray-50">
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.linkUrl"
+                  @input="onColumnFilter('linkUrl', $event.target.value)"
+                  type="text"
+                  placeholder="Filter links..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.pageUrl"
+                  @input="onColumnFilter('pageUrl', $event.target.value)"
+                  type="text"
+                  placeholder="Filter sources..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.linkText"
+                  @input="onColumnFilter('linkText', $event.target.value)"
+                  type="text"
+                  placeholder="Filter anchors..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200">
+                <select
+                  v-model="columnFilters.noFollow"
+                  @change="onColumnFilter('noFollow', $event.target.value)"
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">All</option>
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
+                </select>
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.ipString"
+                  @input="onColumnFilter('ipString', $event.target.value)"
+                  type="text"
+                  placeholder="Filter IPs..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+            </tr>
+          </thead>
 
-        <Column field="linkTextShort" header="Anchor" class="text-xs" :style="{ width: '20%' }">
-          <template #body="{ data }">
-            <div
-              :title="data.linkText"
-              class="text-xs text-gray-600 truncate"
-            >
-              {{ data.linkTextShort || data.linkText || '-' }}
-            </div>
-          </template>
-        </Column>
+          <tbody>
+            <tr v-if="links.length === 0 && !loading" class="border-b border-gray-100">
+              <td colspan="8" class="px-3 py-8 text-center text-gray-500">
+                <i class="pi pi-search text-2xl text-gray-400 mb-2 block"></i>
+                {{ domain ? 'No backlinks found for this domain.' : 'Enter a domain to search for backlinks.' }}
+              </td>
+            </tr>
 
-        <Column field="noFollow" header="No Follow" class="text-xs text-center" :style="{ width: '8%' }">
-          <template #body="{ data }">
-            <i v-if="data.noFollow" class="pi pi-check text-green-600 text-xs"></i>
-            <i v-else class="pi pi-times text-red-600 text-xs"></i>
-          </template>
-        </Column>
-
-        <Column field="dateFrom" header="First Seen" class="text-xs text-center" :style="{ width: '8%' }">
-          <template #body="{ data }">
-            <span class="text-xs text-gray-600">{{ formatDate(data.dateFrom) }}</span>
-          </template>
-        </Column>
-
-        <Column field="dateTo" header="Last Seen" class="text-xs text-center" :style="{ width: '8%' }">
-          <template #body="{ data }">
-            <span class="text-xs text-gray-600">{{ formatDate(data.dateTo) }}</span>
-          </template>
-        </Column>
-
-        <Column field="ipString" header="IP" class="text-xs" :style="{ width: '12%' }">
-          <template #body="{ data }">
-            <span class="text-xs text-gray-600 font-mono">{{ data.ipString || '-' }}</span>
-          </template>
-        </Column>
-
-        <Column field="qty" header="Qty" class="text-xs text-center" :style="{ width: '6%' }">
-          <template #body="{ data }">
-            <span class="text-xs font-medium text-gray-800">{{ data.qty || 1 }}</span>
-          </template>
-        </Column>
-
-        <template #empty>
-          <div class="text-center py-8 text-gray-500 text-sm">
-            <i class="pi pi-search text-2xl text-gray-400 mb-2 block"></i>
-            {{ domain ? 'No backlinks found for this domain.' : 'Enter a domain to search for backlinks.' }}
-          </div>
-        </template>
-      </DataTable>
+            <tr v-for="link in links" :key="link.linkUrl + link.pageUrl" class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="px-3 py-2">
+                <div
+                  :title="link.linkUrl"
+                  class="text-blue-600 hover:text-blue-800 cursor-pointer truncate"
+                  @click="openUrl(link.linkUrl)"
+                >
+                  {{ link.linkUrlShort || link.linkUrl }}
+                </div>
+              </td>
+              <td class="px-3 py-2">
+                <div
+                  :title="link.pageUrl"
+                  class="text-gray-700 hover:text-gray-900 cursor-pointer truncate"
+                  @click="openUrl(link.pageUrl)"
+                >
+                  {{ link.pageUrlShort || link.pageUrl }}
+                </div>
+              </td>
+              <td class="px-3 py-2">
+                <div :title="link.linkText" class="text-gray-600 truncate">
+                  {{ link.linkTextShort || link.linkText || '-' }}
+                </div>
+              </td>
+              <td class="px-3 py-2 text-center">
+                <i v-if="link.noFollow" class="pi pi-check text-green-600"></i>
+                <i v-else class="pi pi-times text-red-600"></i>
+              </td>
+              <td class="px-3 py-2 text-center text-gray-600">
+                {{ formatDate(link.dateFrom) }}
+              </td>
+              <td class="px-3 py-2 text-center text-gray-600">
+                {{ formatDate(link.dateTo) }}
+              </td>
+              <td class="px-3 py-2 text-gray-600 font-mono text-xs">
+                {{ link.ipString || '-' }}
+              </td>
+              <td class="px-3 py-2 text-center font-medium text-gray-800">
+                {{ link.qty || 1 }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Custom Pagination -->
@@ -147,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { LinksData } from '../types/links'
 
 interface Props {
@@ -158,6 +238,8 @@ interface Props {
   currentPage: number
   rowsPerPage: number
   totalRecords: number
+  sortBy: string
+  sortType: 'asc' | 'desc'
 }
 
 const props = defineProps<Props>()
@@ -165,7 +247,22 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:currentPage': [page: number]
   'update:rowsPerPage': [rows: number]
+  'update:filters': [filters: { name: string; val: string; kind: string }[]]
+  'sort': [column: string]
 }>()
+
+// Column filters
+const columnFilters = ref({
+  linkUrl: '',
+  pageUrl: '',
+  linkText: '',
+  noFollow: '',
+  dateFrom: '',
+  dateTo: '',
+  ipString: ''
+})
+
+let debounceTimeout = 0
 
 const isLastPage = computed(() => {
   return props.currentPage * props.rowsPerPage >= props.totalRecords
@@ -201,40 +298,45 @@ const openUrl = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 }
+
+const onColumnFilter = (column: string, value: string) => {
+  // Clear previous timeout
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout)
+  }
+
+  // Update the column filter
+  columnFilters.value[column as keyof typeof columnFilters.value] = value
+
+  // Set debounced update
+  debounceTimeout = setTimeout(() => {
+    const activeFilters = []
+
+    // Convert column filters to API format
+    if (columnFilters.value.linkUrl) {
+      activeFilters.push({ name: 'Link Path', val: columnFilters.value.linkUrl, kind: 'any' })
+    }
+    if (columnFilters.value.pageUrl) {
+      activeFilters.push({ name: 'Source Host', val: columnFilters.value.pageUrl, kind: 'any' })
+    }
+    if (columnFilters.value.linkText) {
+      activeFilters.push({ name: 'Anchor', val: columnFilters.value.linkText, kind: 'any' })
+    }
+    if (columnFilters.value.noFollow) {
+      activeFilters.push({ name: 'No Follow', val: columnFilters.value.noFollow, kind: 'exact' })
+    }
+
+    emit('update:filters', activeFilters)
+  }, 300)
+}
+
+const onSort = (column: string) => {
+  emit('sort', column)
+}
+
+const getSortIcon = (column: string) => {
+  if (props.sortBy !== column) return 'pi-sort'
+  return props.sortType === 'asc' ? 'pi-sort-up' : 'pi-sort-down'
+}
 </script>
 
-<style scoped>
-:deep(.p-datatable) {
-  font-size: 0.75rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: #f8fafc;
-}
-
-:deep(.p-datatable .p-datatable-scrollable-body) {
-  overflow: visible;
-}
-
-:deep(.p-datatable) {
-  overflow: visible;
-}
-
-:deep(.p-datatable .p-datatable-wrapper) {
-  overflow: visible;
-}
-</style>

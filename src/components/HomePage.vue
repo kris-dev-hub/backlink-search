@@ -3,7 +3,6 @@ import { ref, watch } from 'vue'
 import { FilterData, LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
 import SearchInput from './SearchInput.vue'
-import FilterPanel from './FilterPanel.vue'
 import ResultsTable from './ResultsTable.vue'
 
 const links = ref<LinksData[]>([])
@@ -16,6 +15,8 @@ const rowsPerPage = ref(25)
 const totalRecords = ref(0)
 
 const filtersData = ref<FilterData[]>([])
+const sortBy = ref('default')
+const sortType = ref<'asc' | 'desc'>('asc')
 
 let debounceTimeout = 0
 
@@ -36,8 +37,8 @@ const loadFromServer = async () => {
       domain.value,
       currentPage.value,
       rowsPerPage.value,
-      'default',
-      'asc',
+      sortBy.value,
+      sortType.value,
       filtersData.value
     )
 
@@ -104,6 +105,17 @@ const onRowsPerPageUpdate = (newRowsPerPage: number) => {
   loadFromServer()
 }
 
+const onSort = (column: string) => {
+  if (sortBy.value === column) {
+    sortType.value = sortType.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = column
+    sortType.value = 'asc'
+  }
+  currentPage.value = 1
+  loadFromServer()
+}
+
 const truncatedText = (text: string, length: number) => {
   return text.length <= length
     ? text
@@ -142,13 +154,6 @@ const truncatedText = (text: string, length: number) => {
           </div>
         </div>
 
-        <!-- Filter Panel -->
-        <FilterPanel
-          v-model="filtersData"
-          :domain="domain"
-          @update:modelValue="onFiltersUpdate"
-          class="mt-6"
-        />
       </div>
 
       <!-- Results Table - Full Width -->
@@ -160,8 +165,12 @@ const truncatedText = (text: string, length: number) => {
         :current-page="currentPage"
         :rows-per-page="rowsPerPage"
         :total-records="totalRecords"
+        :sort-by="sortBy"
+        :sort-type="sortType"
         @update:current-page="onPageUpdate"
         @update:rows-per-page="onRowsPerPageUpdate"
+        @update:filters="onFiltersUpdate"
+        @sort="onSort"
       />
     </div>
   </div>
