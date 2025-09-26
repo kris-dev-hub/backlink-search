@@ -100,7 +100,7 @@
                   v-model="columnFilters.ipString"
                   @input="onColumnFilter('ipString', $event.target.value)"
                   type="text"
-                  placeholder="Filter IPs..."
+                  placeholder="Filter by IP..."
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
@@ -343,6 +343,9 @@ const onColumnFilter = (column: string, value: string) => {
     }
     if (columnFilters.value.noFollow) {
       activeFilters.push({ name: 'No Follow', val: columnFilters.value.noFollow, kind: 'exact' })
+    }
+    if (columnFilters.value.ipString) {
+      activeFilters.push({ name: 'IP', val: columnFilters.value.ipString, kind: 'any' })
     }
 
     emit('update:filters', activeFilters)
