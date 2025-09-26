@@ -1,8 +1,36 @@
 <template>
   <div v-if="domain" class="results-table bg-white border border-gray-200">
-    <div class="p-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800">Search Results</h3>
-      <p class="text-xs text-gray-600 mt-1">Showing backlinks for: <strong>{{ domain }}</strong></p>
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Search Results</h3>
+        <p class="text-xs text-gray-600 mt-1">Showing backlinks for: <strong>{{ domain }}</strong></p>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-gray-600">Export:</label>
+        <button
+          @click="exportCSV"
+          class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+        >
+          <i class="pi pi-file mr-1"></i>
+          CSV
+        </button>
+        <button
+          @click="exportExcel"
+          class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+        >
+          <i class="pi pi-file-excel mr-1"></i>
+          Excel
+        </button>
+        <button
+          @click="exportPDF"
+          class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+        >
+          <i class="pi pi-file-pdf mr-1"></i>
+          PDF
+        </button>
+      </div>
     </div>
 
 
@@ -198,31 +226,6 @@
           </select>
         </div>
 
-        <!-- Export Buttons -->
-        <div class="flex items-center gap-2">
-          <label class="text-xs text-gray-600">Export:</label>
-          <button
-            @click="exportCSV"
-            class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-          >
-            <i class="pi pi-file mr-1"></i>
-            CSV
-          </button>
-          <button
-            @click="exportExcel"
-            class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-          >
-            <i class="pi pi-file-excel mr-1"></i>
-            Excel
-          </button>
-          <button
-            @click="exportPDF"
-            class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-          >
-            <i class="pi pi-file-pdf mr-1"></i>
-            PDF
-          </button>
-        </div>
       </div>
 
       <div class="flex items-center gap-2">
