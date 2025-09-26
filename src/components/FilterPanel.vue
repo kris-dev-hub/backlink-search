@@ -25,52 +25,51 @@
           <label class="block text-xs font-medium text-gray-700 mb-1">
             Filter Field
           </label>
-          <Dropdown
+          <select
             v-model="localFilters.field"
-            :options="filterOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select filter field"
-            class="w-full text-xs"
+            class="filter-select w-full text-xs"
             @change="onFilterFieldChange"
-          />
+          >
+            <option v-for="option in filterOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div v-if="showFilterValue" class="flex-1">
           <label class="block text-xs font-medium text-gray-700 mb-1">
             Filter Value
           </label>
-          <InputText
+          <input
             v-if="isTextFilter"
             v-model="localFilters.value"
+            type="text"
             placeholder="Enter filter value (use quotes for exact match)"
-            class="w-full text-xs"
+            class="input-field w-full text-xs"
             @input="onFilterValueChange"
           />
-          <Dropdown
+          <select
             v-else-if="isBooleanFilter"
             v-model="localFilters.value"
-            :options="booleanOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select value"
-            class="w-full text-xs"
+            class="filter-select w-full text-xs"
             @change="onFilterValueChange"
-          />
+          >
+            <option value="">Select value</option>
+            <option v-for="option in booleanOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div class="flex gap-2">
-          <Button
+          <button
             v-if="hasActiveFilter"
             @click="clearFilters"
-            size="small"
-            severity="secondary"
-            outlined
-            class="text-xs"
+            class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border transition-colors"
           >
             <i class="pi pi-times mr-1"></i>
             Clear
-          </Button>
+          </button>
         </div>
       </div>
 

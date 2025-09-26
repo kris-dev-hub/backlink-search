@@ -100,37 +100,49 @@
 
     <!-- Custom Pagination -->
     <div v-if="links.length > 0" class="p-4 border-t border-gray-200 flex items-center justify-between">
-      <div class="text-xs text-gray-600">
-        Showing {{ ((currentPage - 1) * rowsPerPage) + 1 }} to {{ Math.min(currentPage * rowsPerPage, totalRecords) }}
-        of {{ totalRecords }} results
+      <div class="flex items-center gap-4">
+        <div class="text-xs text-gray-600">
+          Showing {{ ((currentPage - 1) * rowsPerPage) + 1 }} to {{ Math.min(currentPage * rowsPerPage, totalRecords) }}
+          of {{ totalRecords }} results
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-gray-600">Rows per page:</label>
+          <select
+            :value="rowsPerPage"
+            @change="$emit('update:rowsPerPage', Number(($event.target as HTMLSelectElement).value))"
+            class="text-xs border border-gray-300 rounded px-2 py-1"
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <Button
+        <button
           @click="goToPreviousPage"
           :disabled="currentPage <= 1"
-          size="small"
-          outlined
-          class="text-xs"
+          class="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <i class="pi pi-chevron-left"></i>
+          <i class="pi pi-chevron-left mr-1"></i>
           Previous
-        </Button>
+        </button>
 
         <span class="text-xs text-gray-600 px-2">
           Page {{ currentPage }}
         </span>
 
-        <Button
+        <button
           @click="goToNextPage"
           :disabled="isLastPage"
-          size="small"
-          outlined
-          class="text-xs"
+          class="px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
           <i class="pi pi-chevron-right ml-1"></i>
-        </Button>
+        </button>
       </div>
     </div>
   </div>

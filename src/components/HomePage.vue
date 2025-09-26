@@ -98,6 +98,12 @@ const onPageUpdate = (newPage: number) => {
   loadFromServer()
 }
 
+const onRowsPerPageUpdate = (newRowsPerPage: number) => {
+  rowsPerPage.value = newRowsPerPage
+  currentPage.value = 1
+  loadFromServer()
+}
+
 const truncatedText = (text: string, length: number) => {
   return text.length <= length
     ? text
@@ -106,50 +112,40 @@ const truncatedText = (text: string, length: number) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h1 class="text-3xl font-bold text-gray-900">Backlink Search</h1>
-        <p class="mt-2 text-sm text-gray-600">
-          Discover backlinks pointing to any domain with advanced filtering capabilities
-        </p>
-      </div>
+  <div class="container mx-auto px-4 py-8">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">
+        Backlink Search
+      </h1>
+      <p class="text-xl text-gray-600">
+        Discover backlinks pointing to any domain
+      </p>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Description Section -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <p class="text-sm text-gray-700 leading-relaxed">
-          Introducing new backlink search tool designed for SEO enthusiasts and
-          website owners. This user-friendly tool offers the unique capability to
-          search for backlinks by specific domains. It's an ideal solution for
-          those looking to enhance their SEO strategies by understanding where
-          their or competitors' backlinks are coming from. The best part? It's
-          free, with some limitations in place. This accessibility ensures that
-          even beginners or those on a tight budget can start optimizing their
-          backlink strategy effectively. Dive into a new world of optimization and
-          give your website the visibility it deserves!
-        </p>
-      </div>
-
+    <div class="max-w-6xl mx-auto">
       <!-- Search Input -->
-      <div class="mb-6">
-        <SearchInput
-          :loading="loading"
-          @search="onSearch"
-        />
+      <SearchInput
+        :loading="loading"
+        @search="onSearch"
+      />
+
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-red-800 text-sm font-medium">{{ errorMessage }}</p>
+        </div>
       </div>
 
       <!-- Filter Panel -->
-      <div class="mb-6">
-        <FilterPanel
-          v-model="filtersData"
-          :domain="domain"
-          @update:modelValue="onFiltersUpdate"
-        />
-      </div>
+      <FilterPanel
+        v-model="filtersData"
+        :domain="domain"
+        @update:modelValue="onFiltersUpdate"
+        class="mt-6"
+      />
 
       <!-- Results Table -->
       <ResultsTable
@@ -161,8 +157,10 @@ const truncatedText = (text: string, length: number) => {
         :rows-per-page="rowsPerPage"
         :total-records="totalRecords"
         @update:current-page="onPageUpdate"
+        @update:rows-per-page="onRowsPerPageUpdate"
+        class="mt-8"
       />
-    </main>
+    </div>
   </div>
 </template>
 
