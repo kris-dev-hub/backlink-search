@@ -409,29 +409,74 @@ const exportExcel = () => {
 }
 
 const exportPDF = () => {
-  const doc = new jsPDF()
+  const doc = new jsPDF('landscape') // Use landscape for more width
   const data = prepareExportData('array')
+  const pageWidth = doc.internal.pageSize.width
+  const pageHeight = doc.internal.pageSize.height
 
-  // Add title
+  // Center and add title
   doc.setFontSize(16)
-  doc.text(`Backlinks for ${props.domain}`, 14, 15)
-  doc.setFontSize(10)
-  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 22)
+  const titleText = `Backlinks for ${props.domain}`
+  const titleWidth = doc.getTextWidth(titleText)
+  doc.text(titleText, (pageWidth - titleWidth) / 2, 15)
 
-  // Add table
+  doc.setFontSize(10)
+  const dateText = `Generated on ${new Date().toLocaleDateString()}`
+  const dateWidth = doc.getTextWidth(dateText)
+  doc.text(dateText, (pageWidth - dateWidth) / 2, 22)
+
+  // Calculate optimal column widths for full page width
+  const margins = 20 // 10px margin on each side
+  const availableWidth = pageWidth - margins
+
+  // Define minimum column widths (in points)
+  const minQtyWidth = 25      // Minimum for "Qty" + numbers
+  const minNoFollowWidth = 35 // Minimum for "No Follow"
+  const minIpWidth = 45       // Minimum for IP addresses
+
+  // Calculate remaining width for flexible columns
+  const fixedWidth = minQtyWidth + minNoFollowWidth + minIpWidth
+  const flexibleWidth = availableWidth - fixedWidth
+
+  // Distribute remaining width proportionally
+  const linkWidth = flexibleWidth * 0.40      // 40% of flexible width
+  const sourceWidth = flexibleWidth * 0.40    // 40% of flexible width
+  const anchorWidth = flexibleWidth * 0.20    // 20% of flexible width
+
+  // Use calculated widths with minimums
+  const qtyWidth = minQtyWidth
+  const noFollowWidth = minNoFollowWidth
+  const ipWidth = minIpWidth
+
+  // Add table with full width
   autoTable(doc, {
     head: [data[0]],
     body: data.slice(1),
     startY: 30,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [79, 70, 229] },
+    margin: { left: margins / 2, right: margins / 2 },
+    tableWidth: 'auto',
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      halign: 'left'
+    },
+    headStyles: {
+      fillColor: [79, 70, 229],
+      textColor: 255,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
     columnStyles: {
-      0: { cellWidth: 40 }, // Link
-      1: { cellWidth: 40 }, // Source
-      2: { cellWidth: 30 }, // Anchor
-      3: { cellWidth: 15 }, // No Follow
-      4: { cellWidth: 25 }, // IP
-      5: { cellWidth: 10 }  // Qty
+      0: { cellWidth: linkWidth, halign: 'left' },    // Link
+      1: { cellWidth: sourceWidth, halign: 'left' },  // Source
+      2: { cellWidth: anchorWidth, halign: 'left' },  // Anchor
+      3: { cellWidth: noFollowWidth, halign: 'center' }, // No Follow
+      4: { cellWidth: ipWidth, halign: 'center' },    // IP
+      5: { cellWidth: qtyWidth, halign: 'center' }    // Qty
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245]
     }
   })
 
