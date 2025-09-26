@@ -67,27 +67,27 @@
               </th>
             </tr>
 
-            <!-- Filter Row -->
+            <!-- Filter Row 1 -->
             <tr class="bg-gray-50">
-              <th class="px-3 py-2 border-b border-gray-200">
+              <th class="px-3 py-2 border-b border-gray-100">
                 <input
                   v-model="columnFilters.linkUrl"
                   @input="onColumnFilter('linkUrl', $event.target.value)"
                   type="text"
-                  placeholder="Filter links..."
+                  placeholder="Filter link patterns..."
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
-              <th class="px-3 py-2 border-b border-gray-200">
+              <th class="px-3 py-2 border-b border-gray-100">
                 <input
                   v-model="columnFilters.pageUrl"
                   @input="onColumnFilter('pageUrl', $event.target.value)"
                   type="text"
-                  placeholder="Filter sources..."
+                  placeholder="Filter source hosts..."
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
-              <th class="px-3 py-2 border-b border-gray-200">
+              <th class="px-3 py-2 border-b border-gray-100">
                 <input
                   v-model="columnFilters.linkText"
                   @input="onColumnFilter('linkText', $event.target.value)"
@@ -96,7 +96,7 @@
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
-              <th class="px-3 py-2 border-b border-gray-200">
+              <th class="px-3 py-2 border-b border-gray-100">
                 <select
                   v-model="columnFilters.noFollow"
                   @change="onColumnFilter('noFollow', $event.target.value)"
@@ -107,9 +107,9 @@
                   <option value="0">No</option>
                 </select>
               </th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200">
+              <th class="px-3 py-2 border-b border-gray-100"></th>
+              <th class="px-3 py-2 border-b border-gray-100"></th>
+              <th class="px-3 py-2 border-b border-gray-100">
                 <input
                   v-model="columnFilters.ipString"
                   @input="onColumnFilter('ipString', $event.target.value)"
@@ -118,6 +118,34 @@
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
+              <th class="px-3 py-2 border-b border-gray-100"></th>
+            </tr>
+
+            <!-- Filter Row 2 - Additional Paths -->
+            <tr class="bg-gray-50">
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.linkUrlPath"
+                  @input="onColumnFilter('linkUrlPath', $event.target.value)"
+                  type="text"
+                  placeholder="Additional link paths..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200">
+                <input
+                  v-model="columnFilters.pageUrlPath"
+                  @input="onColumnFilter('pageUrlPath', $event.target.value)"
+                  type="text"
+                  placeholder="Filter source paths..."
+                  class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
               <th class="px-3 py-2 border-b border-gray-200"></th>
             </tr>
           </thead>
@@ -254,7 +282,9 @@ const emit = defineEmits<{
 // Column filters
 const columnFilters = ref({
   linkUrl: '',
+  linkUrlPath: '',
   pageUrl: '',
+  pageUrlPath: '',
   linkText: '',
   noFollow: '',
   dateFrom: '',
@@ -313,11 +343,24 @@ const onColumnFilter = (column: string, value: string) => {
     const activeFilters = []
 
     // Convert column filters to API format
+    // For link filters, combine both inputs with OR logic since API only has Link Path
+    const linkFilters = []
     if (columnFilters.value.linkUrl) {
-      activeFilters.push({ name: 'Link Path', val: columnFilters.value.linkUrl, kind: 'any' })
+      linkFilters.push(columnFilters.value.linkUrl)
+    }
+    if (columnFilters.value.linkUrlPath) {
+      linkFilters.push(columnFilters.value.linkUrlPath)
+    }
+    if (linkFilters.length > 0) {
+      // Combine search terms with | (OR) for regex pattern
+      const combinedPattern = linkFilters.join('|')
+      activeFilters.push({ name: 'Link Path', val: combinedPattern, kind: 'any' })
     }
     if (columnFilters.value.pageUrl) {
       activeFilters.push({ name: 'Source Host', val: columnFilters.value.pageUrl, kind: 'any' })
+    }
+    if (columnFilters.value.pageUrlPath) {
+      activeFilters.push({ name: 'Source Path', val: columnFilters.value.pageUrlPath, kind: 'any' })
     }
     if (columnFilters.value.linkText) {
       activeFilters.push({ name: 'Anchor', val: columnFilters.value.linkText, kind: 'any' })
