@@ -9,15 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/jspdf": "^2.0.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.6.2",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "postcss": "^8.5.6",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.9",
     "tailwindcss": "^3.4.17",
     "vue": "^3.3.11",
     "vue-router": "^4.2.5",
-    "vue3-easy-data-table": "^1.5.47"
+    "vue3-easy-data-table": "^1.5.47",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",

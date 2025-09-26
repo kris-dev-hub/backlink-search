@@ -197,6 +197,32 @@
             <option value="100">100</option>
           </select>
         </div>
+
+        <!-- Export Buttons -->
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-gray-600">Export:</label>
+          <button
+            @click="exportCSV"
+            class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+          >
+            <i class="pi pi-file mr-1"></i>
+            CSV
+          </button>
+          <button
+            @click="exportExcel"
+            class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+          >
+            <i class="pi pi-file-excel mr-1"></i>
+            Excel
+          </button>
+          <button
+            @click="exportPDF"
+            class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+          >
+            <i class="pi pi-file-pdf mr-1"></i>
+            PDF
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center gap-2">
@@ -229,6 +255,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { LinksData } from '../types/links'
+import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface Props {
   links: LinksData[]
@@ -355,6 +384,83 @@ const onSort = (column: string) => {
 const getSortIcon = (column: string) => {
   if (props.sortBy !== column) return 'pi-sort'
   return props.sortType === 'asc' ? 'pi-sort-up' : 'pi-sort-down'
+}
+
+// Export Functions
+const exportCSV = () => {
+  const csvContent = prepareExportData('csv')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', `backlinks-${props.domain}-${new Date().toISOString().split('T')[0]}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const exportExcel = () => {
+  const data = prepareExportData('array')
+  const ws = XLSX.utils.aoa_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Backlinks')
+  XLSX.writeFile(wb, `backlinks-${props.domain}-${new Date().toISOString().split('T')[0]}.xlsx`)
+}
+
+const exportPDF = () => {
+  const doc = new jsPDF()
+  const data = prepareExportData('array')
+
+  // Add title
+  doc.setFontSize(16)
+  doc.text(`Backlinks for ${props.domain}`, 14, 15)
+  doc.setFontSize(10)
+  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 22)
+
+  // Add table
+  autoTable(doc, {
+    head: [data[0]],
+    body: data.slice(1),
+    startY: 30,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [79, 70, 229] },
+    columnStyles: {
+      0: { cellWidth: 40 }, // Link
+      1: { cellWidth: 40 }, // Source
+      2: { cellWidth: 30 }, // Anchor
+      3: { cellWidth: 15 }, // No Follow
+      4: { cellWidth: 25 }, // IP
+      5: { cellWidth: 10 }  // Qty
+    }
+  })
+
+  doc.save(`backlinks-${props.domain}-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+const prepareExportData = (format: 'csv' | 'array') => {
+  const headers = ['Link', 'Source', 'Anchor', 'No Follow', 'IP', 'Qty']
+  const rows = props.links.map(link => [
+    link.linkUrl,
+    link.pageUrl,
+    link.linkText || '-',
+    link.noFollow ? 'Yes' : 'No',
+    link.ipString || '-',
+    link.qty || 1
+  ])
+
+  if (format === 'csv') {
+    const csvRows = [headers, ...rows]
+    return csvRows.map(row =>
+      row.map(field =>
+        typeof field === 'string' && field.includes(',')
+          ? `"${field.replace(/"/g, '""')}"`
+          : field
+      ).join(',')
+    ).join('\n')
+  }
+
+  return [headers, ...rows]
 }
 </script>
 
