@@ -45,10 +45,7 @@
                 IP
               </th>
               <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-12">
-                <button @click="onSort('qty')" class="flex items-center gap-1 hover:text-gray-900">
-                  Qty
-                  <i :class="getSortIcon('qty')" class="pi text-xs"></i>
-                </button>
+                Qty
               </th>
             </tr>
 
