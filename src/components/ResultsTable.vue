@@ -44,18 +44,6 @@
                   <i :class="getSortIcon('noFollow')" class="pi text-xs"></i>
                 </button>
               </th>
-              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-20">
-                <button @click="onSort('dateFrom')" class="flex items-center gap-1 hover:text-gray-900">
-                  First Seen
-                  <i :class="getSortIcon('dateFrom')" class="pi text-xs"></i>
-                </button>
-              </th>
-              <th class="px-3 py-2 text-center font-semibold text-gray-700 border-b border-gray-200 w-20">
-                <button @click="onSort('dateTo')" class="flex items-center gap-1 hover:text-gray-900">
-                  Last Seen
-                  <i :class="getSortIcon('dateTo')" class="pi text-xs"></i>
-                </button>
-              </th>
               <th class="px-3 py-2 text-left font-semibold text-gray-700 border-b border-gray-200 w-24">
                 IP
               </th>
@@ -107,8 +95,6 @@
                   <option value="0">No</option>
                 </select>
               </th>
-              <th class="px-3 py-2 border-b border-gray-100"></th>
-              <th class="px-3 py-2 border-b border-gray-100"></th>
               <th class="px-3 py-2 border-b border-gray-100">
                 <input
                   v-model="columnFilters.ipString"
@@ -143,16 +129,12 @@
               </th>
               <th class="px-3 py-2 border-b border-gray-200"></th>
               <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
-              <th class="px-3 py-2 border-b border-gray-200"></th>
             </tr>
           </thead>
 
           <tbody>
             <tr v-if="links.length === 0 && !loading" class="border-b border-gray-100">
-              <td colspan="8" class="px-3 py-8 text-center text-gray-500">
+              <td colspan="6" class="px-3 py-8 text-center text-gray-500">
                 <i class="pi pi-search text-2xl text-gray-400 mb-2 block"></i>
                 {{ domain ? 'No backlinks found for this domain.' : 'Enter a domain to search for backlinks.' }}
               </td>
@@ -185,12 +167,6 @@
               <td class="px-3 py-2 text-center">
                 <i v-if="link.noFollow" class="pi pi-check text-green-600"></i>
                 <i v-else class="pi pi-times text-red-600"></i>
-              </td>
-              <td class="px-3 py-2 text-center text-gray-600">
-                {{ formatDate(link.dateFrom) }}
-              </td>
-              <td class="px-3 py-2 text-center text-gray-600">
-                {{ formatDate(link.dateTo) }}
               </td>
               <td class="px-3 py-2 text-gray-600 font-mono text-xs">
                 {{ link.ipString || '-' }}
