@@ -35,22 +35,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 interface Props {
   loading?: boolean
+  modelValue?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
+  modelValue: ''
 })
 
 const emit = defineEmits<{
   search: [value: string]
+  'update:modelValue': [value: string]
 }>()
 
-const inputValue = ref('')
+const inputValue = ref(props.modelValue)
 const validationError = ref('')
+
+// Watch for prop changes
+watch(() => props.modelValue, (newValue) => {
+  inputValue.value = newValue || ''
+})
+
+// Watch for input changes and emit updates
+watch(inputValue, (newValue) => {
+  emit('update:modelValue', newValue)
+})
 
 const isDisabled = computed(() => props.loading || !inputValue.value.trim())
 

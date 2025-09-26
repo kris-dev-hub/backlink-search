@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { FilterData, LinksData } from '../types/links.ts'
 import { LinksService } from '../services/links.ts'
 import SearchInput from './SearchInput.vue'
@@ -19,6 +20,32 @@ const sortBy = ref('default')
 const sortType = ref<'asc' | 'desc'>('asc')
 
 let debounceTimeout = 0
+
+const route = useRoute()
+const router = useRouter()
+
+let canonicalLink: HTMLLinkElement | null = null
+
+// Handle route parameters on mount
+onMounted(() => {
+  const routeDomain = route.params.domain as string
+  if (routeDomain) {
+    onSearch(routeDomain)
+  }
+
+  // Add canonical link for SEO
+  canonicalLink = document.createElement('link')
+  canonicalLink.rel = 'canonical'
+  canonicalLink.href = window.location.origin + '/'
+  document.head.appendChild(canonicalLink)
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (canonicalLink && canonicalLink.parentNode) {
+    canonicalLink.parentNode.removeChild(canonicalLink)
+  }
+})
 
 const onSearch = async (searchDomain: string) => {
   domain.value = searchDomain
@@ -45,6 +72,8 @@ const loadFromServer = async () => {
     if ('error' in data) {
       errorMessage.value = data.error
       links.value = []
+      // Update URL to search page on error
+      updateUrlForSearchResult(false)
       return
     }
 
@@ -64,6 +93,9 @@ const loadFromServer = async () => {
 
     links.value = data
 
+    // Update URL to domain page on success
+    updateUrlForSearchResult(true)
+
     // Calculate total records for pagination
     if (data.length < rowsPerPage.value) {
       totalRecords.value = (currentPage.value - 1) * rowsPerPage.value + data.length
@@ -74,6 +106,8 @@ const loadFromServer = async () => {
   } catch (error) {
     errorMessage.value = 'Failed to load data. Please try again.'
     links.value = []
+    // Update URL to search page on error
+    updateUrlForSearchResult(false)
   } finally {
     loading.value = false
   }
@@ -116,6 +150,22 @@ const onSort = (column: string) => {
   loadFromServer()
 }
 
+const updateUrlForSearchResult = (success: boolean) => {
+  if (success && domain.value) {
+    // Update URL to domain page on successful search
+    const newPath = `/dev/backlink-search/domain/${encodeURIComponent(domain.value)}`
+    if (route.path !== newPath) {
+      router.replace(newPath)
+    }
+  } else {
+    // Update URL to search page on error or no domain
+    const searchPath = '/dev/backlink-search'
+    if (route.path !== searchPath) {
+      router.replace(searchPath)
+    }
+  }
+}
+
 const truncatedText = (text: string, length: number) => {
   return text.length <= length
     ? text
@@ -140,6 +190,7 @@ const truncatedText = (text: string, length: number) => {
       <!-- Search Input -->
       <div class="max-w-4xl mx-auto mb-6">
         <SearchInput
+          v-model="domain"
           :loading="loading"
           @search="onSearch"
         />
