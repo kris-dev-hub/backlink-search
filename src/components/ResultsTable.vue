@@ -1,5 +1,5 @@
 <template>
-  <div v-if="domain" class="results-table bg-white rounded-lg shadow-sm border border-gray-200">
+  <div v-if="domain" class="results-table bg-white border border-gray-200">
     <div class="p-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-800">Search Results</h3>
       <p class="text-xs text-gray-600 mt-1">Showing backlinks for: <strong>{{ domain }}</strong></p>
@@ -11,7 +11,7 @@
 
     <div class="relative">
       <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-        <ProgressSpinner class="w-8 h-8" />
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
 
       <DataTable
@@ -19,8 +19,6 @@
         :loading="loading"
         class="table-dense text-xs"
         :paginator="false"
-        scrollable
-        scrollHeight="600px"
         :rowClass="() => 'text-xs'"
       >
         <Column field="linkUrlShort" header="Link" class="text-xs" :style="{ width: '25%' }">
@@ -229,6 +227,14 @@ const openUrl = (url: string) => {
 }
 
 :deep(.p-datatable .p-datatable-scrollable-body) {
-  overflow-x: auto;
+  overflow: visible;
+}
+
+:deep(.p-datatable) {
+  overflow: visible;
+}
+
+:deep(.p-datatable .p-datatable-wrapper) {
+  overflow: visible;
 }
 </style>

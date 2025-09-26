@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global reset for full width */
+@layer base {
+  body, html, #app {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
 /* Custom components for consistent styling */
 @layer components {
   .btn-primary {

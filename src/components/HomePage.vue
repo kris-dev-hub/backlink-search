@@ -112,42 +112,46 @@ const truncatedText = (text: string, length: number) => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">
-        Backlink Search
-      </h1>
-      <p class="text-xl text-gray-600">
-        Discover backlinks pointing to any domain
-      </p>
+  <div class="min-h-screen">
+    <header class="bg-white border-b border-gray-200 px-6 py-6">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+          Backlink Search
+        </h1>
+        <p class="text-xl text-gray-600">
+          Discover backlinks pointing to any domain
+        </p>
+      </div>
     </header>
 
-    <div class="max-w-6xl mx-auto">
+    <div class="px-6 py-6">
       <!-- Search Input -->
-      <SearchInput
-        :loading="loading"
-        @search="onSearch"
-      />
+      <div class="max-w-4xl mx-auto mb-6">
+        <SearchInput
+          :loading="loading"
+          @search="onSearch"
+        />
 
-      <!-- Error Message -->
-      <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div class="flex items-center">
-          <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p class="text-red-800 text-sm font-medium">{{ errorMessage }}</p>
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-800 text-sm font-medium">{{ errorMessage }}</p>
+          </div>
         </div>
+
+        <!-- Filter Panel -->
+        <FilterPanel
+          v-model="filtersData"
+          :domain="domain"
+          @update:modelValue="onFiltersUpdate"
+          class="mt-6"
+        />
       </div>
 
-      <!-- Filter Panel -->
-      <FilterPanel
-        v-model="filtersData"
-        :domain="domain"
-        @update:modelValue="onFiltersUpdate"
-        class="mt-6"
-      />
-
-      <!-- Results Table -->
+      <!-- Results Table - Full Width -->
       <ResultsTable
         :links="links"
         :loading="loading"
@@ -158,7 +162,6 @@ const truncatedText = (text: string, length: number) => {
         :total-records="totalRecords"
         @update:current-page="onPageUpdate"
         @update:rows-per-page="onRowsPerPageUpdate"
-        class="mt-8"
       />
     </div>
   </div>
