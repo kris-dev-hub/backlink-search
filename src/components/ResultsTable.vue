@@ -5,9 +5,6 @@
       <p class="text-xs text-gray-600 mt-1">Showing backlinks for: <strong>{{ domain }}</strong></p>
     </div>
 
-    <div v-if="errorMessage" class="p-4 text-red-600 text-sm bg-red-50 border-l-4 border-red-500">
-      {{ errorMessage }}
-    </div>
 
     <div class="relative">
       <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -127,6 +124,8 @@
                   class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
+              <th class="px-3 py-2 border-b border-gray-200"></th>
               <th class="px-3 py-2 border-b border-gray-200"></th>
               <th class="px-3 py-2 border-b border-gray-200"></th>
             </tr>

@@ -23,6 +23,10 @@ const LinksService = {
               'You have reached the rate limit. Please try again in 10 minutes.'
           }
         }
+        // Extract error message from API response
+        if (error.response && error.response.data && error.response.data.error) {
+          return { error: error.response.data.error }
+        }
       }
       return { error: 'An error occurred while fetching data.' }
       //      return {} as LinksData[]
