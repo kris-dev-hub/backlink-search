@@ -335,6 +335,35 @@ Support for shareable URLs with automatic search:
 
 - [Live Demo](https://krisdevhub.com/dev/backlink-search/)
 
+## 🔒 Security Notes
+
+### Known Vulnerabilities
+
+The project currently has the following known security considerations:
+
+#### XLSX Library (High - Production Impact)
+- **Issue**: SheetJS (xlsx) has prototype pollution and ReDoS vulnerabilities
+- **Affected**: Excel export functionality only
+- **Mitigation**:
+  - Vulnerability only affects Excel export processing
+  - Input is controlled (internal backlink data only)
+  - No user-provided XLSX files are processed
+  - Consider alternative export libraries if security is critical
+
+#### esbuild (Moderate - Development Only)
+- **Issue**: Development server SSRF vulnerability
+- **Affected**: Development environment only (`npm run dev`)
+- **Production Impact**: None (Docker builds use production assets)
+- **Mitigation**: Only affects local development server
+
+### Security Best Practices
+
+- ✅ **Production builds**: Use Docker containers with no development dependencies
+- ✅ **Input validation**: All user inputs are validated before API calls
+- ✅ **No file uploads**: Application doesn't accept user file uploads
+- ✅ **API proxy**: nginx handles all external API communication
+- ⚠️ **Excel exports**: Only export trusted internal data
+
 ## 🤝 Contributing
 
 1. Fork the repository
