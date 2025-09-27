@@ -43,8 +43,7 @@ RUN chmod +x /docker-entrypoint.sh && \
     chown -R appuser:appgroup /usr/share/nginx/html && \
     chown -R appuser:appgroup /var/cache/nginx && \
     chown -R appuser:appgroup /var/log/nginx && \
-    chown -R appuser:appgroup /etc/nginx/conf.d && \
-    chown appuser:appgroup /etc/nginx/nginx.conf.template && \
+    chown -R appuser:appgroup /etc/nginx && \
     chown appuser:appgroup /docker-entrypoint.sh
 
 # Create nginx runtime directories with proper permissions
