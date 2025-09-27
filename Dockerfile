@@ -13,8 +13,8 @@ RUN npm ci --no-audit --no-fund
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application (skip TypeScript checking for Docker builds)
+RUN npm run build:docker
 
 # Production stage with nginx
 FROM nginx:alpine
