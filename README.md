@@ -97,7 +97,8 @@ docker run -d \
 docker run -d \
   --name backlink-search-frontend \
   -p 3000:3000 \
-  -e BACKEND_URL=http://backlink-search-backend:8010 \
+  -e NGINX_BACKEND_URL=http://backlink-search-backend:8010 \
+  -e BROWSER_BACKEND_URL=http://backlink-search-backend:8010 \
   --link backlink-search-backend:backend \
   ghcr.io/kris-dev-hub/backlink-search:latest
 ```
@@ -133,7 +134,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - BACKEND_URL=http://backend:8010
+      - NGINX_BACKEND_URL=http://backend:8010
+      - BROWSER_BACKEND_URL=http://backend:8010
     depends_on:
       - backend
     restart: unless-stopped
@@ -147,22 +149,36 @@ services:
 ### 🔧 Environment Variables
 
 **Runtime Configuration:**
-- `BACKEND_URL` - Backend API URL (default: `http://localhost:8010`)
+- `NGINX_BACKEND_URL` - Backend API URL for nginx proxy (default: `http://localhost:8010`)
+  - Used for server-side API proxying through nginx
+  - In Kubernetes, use internal service names (e.g., `http://backend-service:8010`)
+- `BROWSER_BACKEND_URL` - Backend API URL for browser (default: `http://localhost:8010`)
+  - Used for client-side direct API calls
+  - In Kubernetes, use external/ingress URLs (e.g., `https://api.example.com`)
 
 **Docker Examples:**
 ```bash
-# Local backend
+# Local backend (both URLs point to localhost)
+docker run -d \
+  --name backlink-search-frontend \
+  -p 3000:3000 \
+  -e NGINX_BACKEND_URL=http://localhost:8010 \
+  -e BROWSER_BACKEND_URL=http://localhost:8010 \
+  ghcr.io/kris-dev-hub/backlink-search:latest
+
+# Kubernetes deployment (separate internal/external URLs)
+docker run -d \
+  --name backlink-search-frontend \
+  -p 3000:3000 \
+  -e NGINX_BACKEND_URL=http://backend-service:8010 \
+  -e BROWSER_BACKEND_URL=https://api.example.com \
+  ghcr.io/kris-dev-hub/backlink-search:latest
+
+# Legacy: BACKEND_URL still supported (sets both NGINX and BROWSER URLs)
 docker run -d \
   --name backlink-search-frontend \
   -p 3000:3000 \
   -e BACKEND_URL=http://localhost:8010 \
-  ghcr.io/kris-dev-hub/backlink-search:latest
-
-# Kubernetes service backend
-docker run -d \
-  --name backlink-search-frontend \
-  -p 3000:3000 \
-  -e BACKEND_URL=http://backend-service:8010 \
   ghcr.io/kris-dev-hub/backlink-search:latest
 ```
 
@@ -224,8 +240,10 @@ spec:
         ports:
         - containerPort: 3000
         env:
-        - name: BACKEND_URL
+        - name: NGINX_BACKEND_URL
           value: "http://backend-service:8010"
+        - name: BROWSER_BACKEND_URL
+          value: "https://api.example.com"
         resources:
           requests:
             memory: "32Mi"
