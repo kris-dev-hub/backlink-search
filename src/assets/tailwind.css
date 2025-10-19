@@ -25,6 +25,19 @@
   .filter-select {
     @apply px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white;
   }
+
+  /* PrimeVue Sidebar styling for PrimeVue 4 */
+  .p-sidebar {
+    @apply bg-white shadow-lg;
+  }
+
+  .p-sidebar-close {
+    @apply absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700;
+  }
+
+  .p-sidebar-mask {
+    @apply bg-black bg-opacity-50;
+  }
 }
 
 /* Dense data table styling */

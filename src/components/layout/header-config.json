@@ -1,0 +1,18 @@
+{
+  "brandName": "KrisDevHub",
+  "brandUrl": "https://krisdevhub.com",
+  "navigation": [
+    {
+      "label": "Tools",
+      "url": "https://krisdevhub.com/projects"
+    },
+    {
+      "label": "Docs",
+      "url": "https://krisdevhub.com/docs"
+    },
+    {
+      "label": "About",
+      "url": "https://krisdevhub.com/about"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "brandName": "KrisDevHub",
+  "brandDescription": "Free data intelligence tools for developers and marketers.",
+  "columns": [
+    {
+      "title": "Tools",
+      "items": [
+        {
+          "label": "Backlink Search",
+          "url": "https://krisdevhub.com/backlink-search",
+          "icon": null
+        },
+        {
+          "label": "Tech Stack Search",
+          "url": "https://krisdevhub.com/tech-stack",
+          "icon": null
+        },
+        {
+          "label": "Domain Search",
+          "url": "https://krisdevhub.com/domain-search",
+          "icon": null
+        }
+      ]
+    },
+    {
+      "title": "Resources",
+      "items": [
+        {
+          "label": "Documentation",
+          "url": "https://krisdevhub.com/docs",
+          "icon": null
+        },
+        {
+          "label": "About",
+          "url": "https://krisdevhub.com/about",
+          "icon": null
+        }
+      ]
+    },
+    {
+      "title": "Connect",
+      "items": [
+        {
+          "label": "GitHub",
+          "url": "https://github.com/kris-dev-hub",
+          "icon": "pi-github"
+        }
+      ]
+    }
+  ],
+  "copyrightYear": "2025",
+  "copyrightText": "KrisDevHub."
+}
