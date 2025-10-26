@@ -15,6 +15,7 @@ import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
 import ProgressSpinner from 'primevue/progressspinner'
 import Sidebar from 'primevue/sidebar'
+import { createGtm } from '@gtm-support/vue-gtm'
 
 const app = createApp(App)
 
@@ -28,6 +29,10 @@ app.use(PrimeVue, {
     }
   }
 })
+app.use(createGtm({
+  id: 'GTM-TN45K4MD', // your GTM ID
+  vueRouter: router, // pass your router
+}))
 
 app.component('DataTable', DataTable)
 app.component('Column', Column)
